@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluxo Digital | Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #e0e0e0; /* fundo cinza */
+      color: #111827;
+    }
+
+    header {
+      background: #1e40af;
+      color: #fff;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    .balance {
+      background: #2563eb;
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .balance h2 {
+      margin: 0 0 10px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .actions button {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      transition: 0.2s;
+    }
+
+    .deposit { background: #22c55e; color: #fff; }
+    .withdraw { background: #ef4444; color: #fff; }
+    .transfer { background: #facc15; color: #111827; }
+
+    .actions button:hover { opacity: 0.8; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    table th {
+      background: #1e3a8a;
+      color: #fff;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .modal-content button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      background: #3b82f6;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  Fluxo Digital
+</header>
+
+<div class="container">
+  <div class="balance">
+    <h2>Saldo da Conta</h2>
+    <p id="saldo">R$ 0,00</p>
+  </div>
+
+  <div class="actions">
+    <button class="deposit" onclick="operacao('deposit')">Depósito</button>
+    <button class="withdraw" onclick="operacao('withdraw')">Saque</button>
+    <button class="transfer" onclick="operacao('transfer')">Transferência</button>
+  </div>
+
+  <h3>Extrato de Transações</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody id="extrato">
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">Operação</h3>
+    <input type="number" id="valor" placeholder="Valor" />
+    <button onclick="confirmarOperacao()">Confirmar</button>
+  </div>
+</div>
+
+<script>
+  let saldo = 0;
+  let operacaoAtual = '';
+  const extrato = document.getElementById('extrato');
+
+  function operacao(tipo) {
+    operacaoAtual = tipo;
+    document.getElementById('modal').style.display = 'flex';
+    document.getElementById('modalTitle').innerText = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+    document.getElementById('valor').value = '';
+  }
+
+  function confirmarOperacao() {
+    const valor = parseFloat(document.getElementById('valor').value);
+    if (isNaN(valor) || valor <= 0) {
+      alert('Digite um valor válido.');
+      return;
+    }
+
+    let tipo = '';
+    if (operacaoAtual === 'deposit') {
+      saldo += valor;
+      tipo = 'Depósito';
+    } else if (operacaoAtual === 'withdraw') {
+      if (valor > saldo) {
+        alert('Saldo insuficiente!');
+        return;
+      }
+      saldo -= valor;
+      tipo = 'Saque';
+    } else if (operacaoAtual === 'transfer') {
+      if (valor > saldo) {
+        alert('Saldo insuficiente!');
+        return;
+      }
+      saldo -= valor;
+      tipo = 'Transferência';
+    }
+
+    atualizarSaldo();
+    adicionarExtrato(tipo, valor);
+    document.getElementById('modal').style.display = 'none';
+  }
+
+  function atualizarSaldo() {
+    document.getElementById('saldo').innerText = `R$ ${saldo.toFixed(2)}`;
+  }
+
+  function adicionarExtrato(tipo, valor) {
+    const linha = document.createElement('tr');
+    const data = new Date().toLocaleDateString();
+    linha.innerHTML = `<td>${data}</td><td>${tipo}</td><td>R$ ${valor.toFixed(2)}</td>`;
+    extrato.prepend(linha);
+  }
+
+  // Fechar modal ao clicar fora
+  window.onclick = function(e) {
+    const modal = document.getElementById('modal');
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>
